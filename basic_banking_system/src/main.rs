@@ -13,8 +13,14 @@ fn main() {
         balance: 10000.0
     };
 
-    account1.deposit(5000.0);
-    account2.withdraw(2500.0);
+
+    if let Err(e) = account1.deposit(5000.0) {
+        println!("Failed to deposit into {}'s account: {}", account1.holder_name, e);
+    }
+
+    if let Err(e) = account2.withdraw(2500.0) {
+        println!("Failed to withdraw from {}'s account: {}", account2.holder_name, e)
+    }
     let acc1 = account1.balance();
     let acc2 = account2.balance();
 
@@ -23,8 +29,8 @@ fn main() {
 }
 
 trait Account {
-    fn deposit(&mut self, amount:f64);
-    fn withdraw(&mut self, amount:f64);
+    fn deposit(&mut self, amount:f64) -> Result<(), String>;
+    fn withdraw(&mut self, amount:f64) -> Result<(), String>;
     fn balance(&self) -> f64;
 }
 
@@ -35,12 +41,25 @@ struct BankAccount {
 }
 
 impl Account for BankAccount {
-    fn deposit(&mut self, amount:f64) {
-        self.balance += amount;
+    fn deposit(&mut self, amount:f64) -> Result<(), String> {
+        if amount <= 0.0 {
+            Err("Cannot deposit a non-positive amount.".to_string())
+        } else {
+            self.balance += amount;
+            Ok(())
+
+        }
     }
 
-    fn withdraw(&mut self, amount:f64) {
-        self.balance -= amount;
+    fn withdraw(&mut self, amount:f64) -> Result<(), String> {
+        if amount <= 0.0 {
+            Err("Cannot withdraw a non-positive amount.".to_string())
+        }else if self.balance < amount {
+            Err("Insufficient balance.".to_string())
+        }else{
+            self.balance -= amount;
+            Ok(())
+        }
     }
 
     fn balance(&self) -> f64 {
